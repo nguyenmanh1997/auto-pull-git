@@ -3,17 +3,21 @@ const exec = require("child_process").exec;
 const path = require("path");
 const async = require("async");
 
-const projectPath = process.argv[2];
-const absolutePath = path.join(__dirname, projectPath);
+const projectPath = "/var/www/html/zent.edu.vn";
+//const absolutePath = path.join(__dirname, projectPath);
 
 const cmds = ["git pull"].concat(process.argv.filter((arg, index) => { return index > 2; }));
-
+console.log(cmds);
 const execCmds = cmds.map((cmd) => {
 	return function(callback) {
-		exec(`cd ${absolutePath} && ${cmd}`, {maxBuffer: 1024 * 600}, (err, stdout, stderr) => {
+		exec(`cd ${projectPath} && git checkout -f && git pull origin staging`, {maxBuffer: 1024 * 600}, (err, stdout, stderr) => {
 			if(err) return callback(err);
 			callback(null, `--- ${cmd} ---:\n stdout: ${stdout} \n stderr: ${stderr}\n`);
 		});
+		exec(`cd ${projectPath} && php artisan migrate`, {maxBuffer: 1024 * 600}, (err, stdout, stderr) => {
+                        if(err) return callback(err);
+                        callback(null, `--- ${cmd} ---:\n stdout: ${stdout} \n stderr: ${stderr}\n`);
+                });
 	};
 });
 
